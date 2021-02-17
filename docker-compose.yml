@@ -13,7 +13,12 @@ services:
       - ~/Samsung_T5_Volume/Samsung_T5/TFG/mysql:/var/lib/mysql
     ports:
       - 3306:3306
-
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - '~/redis-data/tfg:/data'
   adminer:
     image: adminer
     restart: always

@@ -60,3 +60,6 @@ func TestCheckPassword(t *testing.T) {
 	err := user.CheckPassword("secret")
 	assert.NoError(t, err)
 }
+
+func TestIDString(t *testing.T) {
+}

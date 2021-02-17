@@ -4,6 +4,7 @@ package database
 
 import (
 	"fmt"
+	"log"
 	"tfg/v2/credentials"
 
 	"gorm.io/driver/mysql"
@@ -22,5 +23,6 @@ func Init() (err error) {
 	if err != nil {
 		panic(err)
 	}
+	log.Println("Connected to MariaDB")
 	return err
 }

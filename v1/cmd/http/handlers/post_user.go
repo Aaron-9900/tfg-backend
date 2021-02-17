@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"gorm.io/gorm"
 )
 
 type userPost struct {
@@ -16,7 +15,7 @@ type userPost struct {
 	Email    string `json:"email" validate:"required"`
 }
 
-func PostUser(db *gorm.DB) gin.HandlerFunc {
+func PostUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user := userPost{}
 		ctx.Bind(&user)
@@ -28,7 +27,7 @@ func PostUser(db *gorm.DB) gin.HandlerFunc {
 			})
 			return
 		}
-		finalUser, err := db_access.PostUser(model.User{ID: 0, Name: user.Name, Email: user.Email, Password: user.Password}, db)
+		finalUser, err := db_access.PostUser(model.User{ID: 0, Name: user.Name, Email: user.Email, Password: user.Password})
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),

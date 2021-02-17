@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"tfg/v2/database"
 	"tfg/v2/models"
 
 	"github.com/gin-gonic/gin"
@@ -18,23 +17,7 @@ import (
 func TestProfile(t *testing.T) {
 	var profile models.User
 
-	err := database.Init()
-	assert.NoError(t, err)
-
-	database.GlobalDB.AutoMigrate(&models.User{})
-
-	user := models.User{
-		Email:    "jwt@email.com",
-		Password: "secret",
-		Name:     "Test User",
-	}
-
-	err = user.HashPassword(user.Password)
-	assert.NoError(t, err)
-
-	err = user.CreateUserRecord()
-	assert.NoError(t, err)
-
+	user := testLoginUser
 	request, err := http.NewRequest("GET", "/api/protected/profile", nil)
 	assert.NoError(t, err)
 
@@ -43,13 +26,12 @@ func TestProfile(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request = request
 
-	c.Set("email", "jwt@email.com")
+	c.Set("id", user.IDString())
 
 	Profile()(c)
 
 	err = json.Unmarshal(w.Body.Bytes(), &profile)
 	assert.NoError(t, err)
-
 	assert.Equal(t, 200, w.Code)
 
 	log.Println(profile)
@@ -61,11 +43,6 @@ func TestProfile(t *testing.T) {
 func TestProfileNotFound(t *testing.T) {
 	var profile models.User
 
-	err := database.Init()
-	assert.NoError(t, err)
-
-	database.GlobalDB.AutoMigrate(&models.User{})
-
 	request, err := http.NewRequest("GET", "/api/protected/profile", nil)
 	assert.NoError(t, err)
 
@@ -74,14 +51,10 @@ func TestProfileNotFound(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request = request
 
-	c.Set("email", "notfound@email.com")
+	c.Set("id", "0")
 
 	Profile()(c)
-
 	err = json.Unmarshal(w.Body.Bytes(), &profile)
 	assert.NoError(t, err)
-
 	assert.Equal(t, 404, w.Code)
-
-	database.GlobalDB.Unscoped().Where("email = ?", "jwt@email.com").Delete(&models.User{})
 }

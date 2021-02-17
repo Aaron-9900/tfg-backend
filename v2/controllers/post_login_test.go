@@ -1,10 +1,9 @@
-// controllers/public_test.go
-
 package controllers
 
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,67 +14,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSignUp(t *testing.T) {
-	var actualResult models.User
-
-	user := models.User{
-		Name:     "Test User",
-		Email:    "jwt@email.com",
-		Password: "secret",
-	}
-
-	payload, err := json.Marshal(&user)
-	assert.NoError(t, err)
-
-	request, err := http.NewRequest("POST", "/api/public/signup", bytes.NewBuffer(payload))
-	assert.NoError(t, err)
-
-	w := httptest.NewRecorder()
-
-	c, _ := gin.CreateTestContext(w)
-	c.Request = request
-
-	err = database.Init()
-	assert.NoError(t, err)
-
-	database.GlobalDB.AutoMigrate(&models.User{})
-
-	Signup()(c)
-
-	assert.Equal(t, 200, w.Code)
-
-	err = json.Unmarshal(w.Body.Bytes(), &actualResult)
-	assert.NoError(t, err)
-
-	assert.Equal(t, user.Name, actualResult.Name)
-	assert.Equal(t, user.Email, actualResult.Email)
-}
-
-func TestSignUpInvalidJSON(t *testing.T) {
-	user := "test"
-
-	payload, err := json.Marshal(&user)
-	assert.NoError(t, err)
-
-	request, err := http.NewRequest("POST", "/api/public/signup", bytes.NewBuffer(payload))
-	assert.NoError(t, err)
-
-	w := httptest.NewRecorder()
-
-	c, _ := gin.CreateTestContext(w)
-	c.Request = request
-
-	Signup()(c)
-
-	assert.Equal(t, 400, w.Code)
-}
-
 func TestLogin(t *testing.T) {
 	user := LoginPayload{
-		Email:    "jwt@email.com",
-		Password: "secret",
+		Email:    testLoginUser.Email,
+		Password: testLoginPassword,
 	}
-
+	dbUser := models.User{}
+	tokens := TokenResponse{}
 	payload, err := json.Marshal(&user)
 	assert.NoError(t, err)
 
@@ -86,14 +31,19 @@ func TestLogin(t *testing.T) {
 
 	c, _ := gin.CreateTestContext(w)
 	c.Request = request
-
-	err = database.Init()
-	assert.NoError(t, err)
-
 	database.GlobalDB.AutoMigrate(&models.User{})
 
 	Login()(c)
 
+	err = json.Unmarshal(w.Body.Bytes(), &tokens)
+	if err != nil {
+		panic(err)
+	}
+	database.GlobalDB.Unscoped().Where("email = ?", user.Email).First(&dbUser)
+	val, err := database.RDB.GetUserAndToken(dbUser.ID, tokens.RefreshToken)
+	assert.NoError(t, err)
+	assert.NotNil(t, val)
+	fmt.Println("key", val)
 	assert.Equal(t, 200, w.Code)
 
 }
@@ -119,7 +69,7 @@ func TestLoginInvalidJSON(t *testing.T) {
 
 func TestLoginInvalidCredentials(t *testing.T) {
 	user := LoginPayload{
-		Email:    "jwt@email.com",
+		Email:    testLoginUser.Email,
 		Password: "invalid",
 	}
 
@@ -142,6 +92,4 @@ func TestLoginInvalidCredentials(t *testing.T) {
 	Login()(c)
 
 	assert.Equal(t, 401, w.Code)
-
-	database.GlobalDB.Unscoped().Where("email = ?", user.Email).Delete(&models.User{})
 }

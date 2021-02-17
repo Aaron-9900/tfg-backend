@@ -1,11 +1,6 @@
-package http
+package middlewares
 
-import (
-	handler "tfg/cmd/http/handlers"
-
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-)
+import "github.com/gin-gonic/gin"
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -21,14 +16,4 @@ func CORSMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-// Run starts the server
-func Run(db *gorm.DB) {
-	r := gin.Default()
-	r.Use(CORSMiddleware())
-	r.GET("/users", handler.GetUsers(db))
-	r.POST("/users", handler.PostUser(db))
-	r.GET("/user", handler.GetUser(db))
-	r.Run("localhost:3000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

@@ -14,6 +14,7 @@ import (
 
 func setupRouter() *gin.Engine {
 	r := gin.Default()
+	r.Use(middlewares.CORSMiddleware())
 	api := r.Group("/api")
 	{
 		public := api.Group("/public")
@@ -26,6 +27,7 @@ func setupRouter() *gin.Engine {
 		protected := api.Group("/protected").Use(middlewares.Authz())
 		{
 			protected.GET("/profile", controllers.Profile())
+			protected.GET("/refresh", controllers.Refresh())
 		}
 	}
 
@@ -34,6 +36,13 @@ func setupRouter() *gin.Engine {
 
 func main() {
 	err := database.Init()
+	DB, _ := database.GlobalDB.DB()
+	defer DB.Close()
+	if err != nil {
+		log.Fatalln("could not create database", err)
+	}
+	err = database.InitRedis()
+	defer database.RDB.Redis.Close()
 	if err != nil {
 		log.Fatalln("could not create database", err)
 	}

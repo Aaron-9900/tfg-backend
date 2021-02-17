@@ -1,2 +1,2 @@
 dev:
-	go run cmd/main.go
+	go run v2/main.go

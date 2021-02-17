@@ -5,21 +5,18 @@ package auth
 import (
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateToken(t *testing.T) {
 	jwtWrapper := JwtWrapper{
-		SecretKey: "verysecretkey",
-		Issuer:    "AuthService",
-		ExpirationMs: time.Now().Local().Add(time.Hour*time.Duration(0) +
-			time.Minute*time.Duration(10) +
-			time.Second*time.Duration(0)).Unix(),
+		SecretKey:       "verysecretkey",
+		Issuer:          "AuthService",
+		ExpirationHours: 24,
 	}
 
-	generatedToken, err := jwtWrapper.GenerateToken("1234")
+	generatedToken, err := jwtWrapper.GenerateToken("jwt@email.com")
 	assert.NoError(t, err)
 
 	os.Setenv("testToken", generatedToken)
@@ -36,6 +33,6 @@ func TestValidateToken(t *testing.T) {
 	claims, err := jwtWrapper.ValidateToken(encodedToken)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "1234", claims.ID)
+	assert.Equal(t, "jwt@email.com", claims.Email)
 	assert.Equal(t, "AuthService", claims.Issuer)
 }

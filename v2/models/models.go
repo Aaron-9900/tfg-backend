@@ -3,6 +3,7 @@
 package models
 
 import (
+	"fmt"
 	"tfg/v2/database"
 
 	"golang.org/x/crypto/bcrypt"
@@ -37,6 +38,9 @@ func (user *User) HashPassword(password string) error {
 	user.Password = string(bytes)
 
 	return nil
+}
+func (user *User) IDString() string {
+	return fmt.Sprint(user.ID)
 }
 
 // CheckPassword checks user password

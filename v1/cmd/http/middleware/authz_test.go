@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"tfg/v2/auth"
-	"tfg/v2/controllers"
-	"tfg/v2/database"
-	"tfg/v2/models"
+	"tfg/cmd/db"
+	"tfg/cmd/db/model"
+	handler "tfg/cmd/http/handlers"
+	"tfg/common/auth"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ func TestAuthzNoHeader(t *testing.T) {
 	router := gin.Default()
 	router.Use(Authz())
 
-	router.GET("/api/protected/profile", controllers.Profile())
+	router.GET("/api/protected/profile", handler.PostSession())
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/protected/profile", nil)
@@ -34,7 +34,7 @@ func TestAuthzInvalidTokenFormat(t *testing.T) {
 	router := gin.Default()
 	router.Use(Authz())
 
-	router.GET("/api/protected/profile", controllers.Profile())
+	router.GET("/api/protected/profile", handler.PostSession())
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/protected/profile", nil)
@@ -50,7 +50,7 @@ func TestAuthzInvalidToken(t *testing.T) {
 	router := gin.Default()
 	router.Use(Authz())
 
-	router.GET("/api/protected/profile", controllers.Profile())
+	router.GET("/api/protected/profile", handler.PostSession())
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/protected/profile", nil)
@@ -62,21 +62,30 @@ func TestAuthzInvalidToken(t *testing.T) {
 }
 
 func TestValidToken(t *testing.T) {
-	var response models.User
+	var response model.User
 
-	err := database.Init()
+	err := db.Init()
 	assert.NoError(t, err)
 
-	err = database.GlobalDB.AutoMigrate(&models.User{})
+	err = db.GlobalDB.AutoMigrate(&model.User{})
 	assert.NoError(t, err)
 
-	user := models.User{
+	user := model.User{
 		Email:    "test@email.com",
 		Password: "secret",
 		Name:     "Test User",
 	}
 
-	err = user.HashPassword(user.Password)
+	jwtWrapper := auth.JwtWrapper{
+		SecretKey:       "verysecretkey",
+		Issuer:          "AuthService",
+		ExpirationHours: 24,
+	}
+
+	token, err := jwtWrapper.GenerateToken(user.Email)
+	assert.NoError(t, err)
+
+	err = user.GenerateSecurePassword()
 	assert.NoError(t, err)
 
 	result := database.GlobalDB.Create(&user)
@@ -85,15 +94,14 @@ func TestValidToken(t *testing.T) {
 	router := gin.Default()
 	router.Use(Authz())
 
-	router.GET("/api/protected/profile", controllers.Profile())
-	token, _, err := auth.GenerateTokens(fmt.Sprint(user.ID))
-	assert.NoError(t, err)
+	router.GET("/api/protected/profile", controllers.Profile)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/protected/profile", nil)
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 
 	router.ServeHTTP(w, req)
+
 	err = json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
 

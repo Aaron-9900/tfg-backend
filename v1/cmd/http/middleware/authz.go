@@ -3,10 +3,8 @@
 package middlewares
 
 import (
-	"fmt"
 	"strings"
-	"tfg/v2/auth"
-	"tfg/v2/credentials"
+	"tfg/cmd/http/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,8 +29,8 @@ func Authz() gin.HandlerFunc {
 			return
 		}
 
-		jwtWrapper := auth.JwtWrapper{
-			SecretKey: credentials.JwtKey,
+		jwtWrapper := types.JwtWrapper{
+			SecretKey: "verysecretkey",
 			Issuer:    "AuthService",
 		}
 
@@ -42,9 +40,9 @@ func Authz() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		fmt.Println(claims)
+
 		c.Set("id", claims.ID)
-		c.Set("token", clientToken)
+
 		c.Next()
 
 	}

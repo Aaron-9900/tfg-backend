@@ -4,9 +4,6 @@ package auth
 
 import (
 	"errors"
-	"fmt"
-	"tfg/v2/credentials"
-
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -14,50 +11,23 @@ import (
 
 // JwtWrapper wraps the signing key and the issuer
 type JwtWrapper struct {
-	SecretKey    string
-	Issuer       string
-	ExpirationMs int64
+	SecretKey       string
+	Issuer          string
+	ExpirationHours int64
 }
 
 // JwtClaim adds email as a claim to the token
 type JwtClaim struct {
-	ID string
+	Email string
 	jwt.StandardClaims
 }
 
-func GenerateTokens(id string) (string, string, error) {
-	jwtWrapperAccess := JwtWrapper{
-		SecretKey: credentials.JwtKey,
-		Issuer:    "AuthService",
-		ExpirationMs: time.Now().Local().Add(time.Hour*time.Duration(0) +
-			time.Minute*time.Duration(10) +
-			time.Second*time.Duration(0)).Unix(),
-	}
-	jwtWrapperRefresh := JwtWrapper{
-		SecretKey: credentials.JwtKey,
-		Issuer:    "AuthService",
-		ExpirationMs: time.Now().Local().Add(time.Hour*time.Duration(72) +
-			time.Minute*time.Duration(0) +
-			time.Second*time.Duration(0)).Unix(),
-	}
-
-	signedToken, err := jwtWrapperAccess.GenerateToken(fmt.Sprint(id))
-	if err != nil {
-		return "", "", err
-	}
-	refreshToken, err := jwtWrapperRefresh.GenerateToken(fmt.Sprint(id))
-	if err != nil {
-		return "", "", err
-	}
-	return signedToken, refreshToken, nil
-}
-
 // GenerateToken generates a jwt token
-func (j *JwtWrapper) GenerateToken(id string) (signedToken string, err error) {
+func (j *JwtWrapper) GenerateToken(email string) (signedToken string, err error) {
 	claims := &JwtClaim{
-		ID: id,
+		Email: email,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: j.ExpirationMs,
+			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(j.ExpirationHours)).Unix(),
 			Issuer:    j.Issuer,
 		},
 	}
