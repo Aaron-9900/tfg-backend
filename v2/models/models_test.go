@@ -10,6 +10,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var testUser User
+
+func TestMain(m *testing.M) {
+	err := database.Init()
+	if err != nil {
+		panic(err)
+	}
+	testUser = User{Name: "Test user", Email: "newemail@gmail.com", Password: "123456"}
+	testUser.CreateUserRecord()
+	m.Run()
+	database.GlobalDB.Unscoped().Delete(&testUser)
+
+}
+
 func TestHashPassword(t *testing.T) {
 	user := User{
 		Password: "secret",
@@ -24,12 +38,7 @@ func TestHashPassword(t *testing.T) {
 func TestCreateUserRecord(t *testing.T) {
 	var userResult User
 
-	err := database.Init()
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = database.GlobalDB.AutoMigrate(&User{})
+	err := database.GlobalDB.AutoMigrate(&User{})
 	assert.NoError(t, err)
 
 	user := User{
@@ -61,5 +70,14 @@ func TestCheckPassword(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestIDString(t *testing.T) {
+func TestUserProposals(t *testing.T) {
+	proposal := Proposal{UserID: testUser.ID, Name: "Proposal request", Description: "New proposal request", Limit: 1}
+	err := proposal.CreateProposalRecord()
+	assert.NoError(t, err)
+
+	userProposals, err := testUser.GetUserProposals()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, userProposals)
+	assert.Equal(t, userProposals[0].ID, proposal.ID)
+
 }
