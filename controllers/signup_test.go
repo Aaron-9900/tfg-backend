@@ -43,16 +43,14 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	database.GlobalDB.Where("id = ?", testProposal.ID).Unscoped().Delete(&models.Proposal{})
 	database.GlobalDB.Where("id = ?", testLoginUser.ID).Unscoped().Delete(&models.User{})
-	database.GlobalDB.Where("id = ?", testPostUser.ID).Unscoped().Delete(&models.User{})
+	database.GlobalDB.Where("id = ?", testPostUser.Email).Unscoped().Delete(&models.User{})
 	os.Exit(code)
 }
 
 func TestSignUp(t *testing.T) {
 	var actualResult models.User
 
-	user := testPostUser
-
-	payload, err := json.Marshal(&user)
+	payload, err := json.Marshal(&testPostUser)
 	assert.NoError(t, err)
 
 	request, err := http.NewRequest("POST", "/api/public/signup", bytes.NewBuffer(payload))
@@ -70,8 +68,8 @@ func TestSignUp(t *testing.T) {
 	err = json.Unmarshal(w.Body.Bytes(), &actualResult)
 	assert.NoError(t, err)
 
-	assert.Equal(t, user.Name, actualResult.Name)
-	assert.Equal(t, user.Email, actualResult.Email)
+	assert.Equal(t, testPostUser.Name, actualResult.Name)
+	assert.Equal(t, testPostUser.Email, actualResult.Email)
 }
 
 func TestSignUpInvalidJSON(t *testing.T) {
