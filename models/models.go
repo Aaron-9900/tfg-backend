@@ -17,7 +17,7 @@ type User struct {
 // Proposal defines proposal in db
 type Proposal struct {
 	gorm.Model
-	User        User
+	User        User   `json:"-"`
 	UserID      uint   `json:"user_id"`
 	Limit       int    `json:"limit"`
 	Name        string `json:"name"`

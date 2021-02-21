@@ -23,6 +23,11 @@ var testPostUser = models.User{
 	Email:    "posttest@email.com",
 	Password: "secret",
 }
+var testProposal = models.Proposal{
+	Name:        "Proposal test",
+	Description: "Proposal description",
+	Limit:       1,
+}
 
 func TestMain(m *testing.M) {
 	database.Init()
@@ -32,10 +37,13 @@ func TestMain(m *testing.M) {
 	defer database.RDB.Redis.Close()
 	testLoginUser.HashPassword(testLoginPassword)
 	testLoginUser.CreateUserRecord()
+	testProposal.UserID = testLoginUser.ID
+	testProposal.CreateProposalRecord()
 
 	code := m.Run()
-	database.GlobalDB.Where("email = ?", testLoginUser.Email).Unscoped().Delete(&models.User{})
-	database.GlobalDB.Where("email = ?", testPostUser.Email).Unscoped().Delete(&models.User{})
+	database.GlobalDB.Where("id = ?", testProposal.ID).Unscoped().Delete(&models.Proposal{})
+	database.GlobalDB.Where("id = ?", testLoginUser.ID).Unscoped().Delete(&models.User{})
+	database.GlobalDB.Where("id = ?", testPostUser.ID).Unscoped().Delete(&models.User{})
 	os.Exit(code)
 }
 

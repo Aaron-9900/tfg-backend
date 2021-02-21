@@ -1,6 +1,9 @@
 package models
 
-import "tfg/database"
+import (
+	"fmt"
+	"tfg/database"
+)
 
 // CreateProposalRecord creates a proposal record in the database
 func (p *Proposal) CreateProposalRecord() error {
@@ -10,4 +13,9 @@ func (p *Proposal) CreateProposalRecord() error {
 	}
 
 	return nil
+}
+
+// CreateProposalRecord creates a proposal record in the database
+func (p *Proposal) IDString() string {
+	return fmt.Sprint(p.ID)
 }
