@@ -4,11 +4,14 @@ package main
 
 import (
 	"log"
+	"math/rand"
+	"os"
 	"tfg/controllers"
 	"tfg/database"
 	"tfg/middlewares"
 	"tfg/models"
 
+	"github.com/brianvoe/gofakeit/v6"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,11 +40,34 @@ func setupRouter() *gin.Engine {
 
 	return r
 }
+func MockData() {
+	gofakeit.Seed(0)
+
+	userData := []models.User{}
+	proposalData := []models.Proposal{}
+	for i := 0; i < 30; i++ {
+		user := models.User{Name: gofakeit.Name(), Email: gofakeit.Email(), Password: "123456"}
+		user.HashPassword(user.Password)
+		userData = append(userData, user)
+	}
+	database.GlobalDB.Create(&userData)
+
+	for i := 0; i < 50; i++ {
+		uid := rand.Intn(len(userData)) + int(userData[0].ID)
+		proposal := models.Proposal{UserID: uint(uid), Name: gofakeit.ProgrammingLanguage(), Limit: gofakeit.Number(0, 100), Description: gofakeit.Paragraph(1, 3, 200, "")}
+		proposalData = append(proposalData, proposal)
+	}
+	database.GlobalDB.Create(&proposalData)
+}
 
 func main() {
 	err := database.Init()
 	DB, _ := database.GlobalDB.DB()
 	defer DB.Close()
+	if len(os.Args) > 1 && os.Args[1] == "withMocks" {
+		MockData()
+		return
+	}
 	if err != nil {
 		log.Fatalln("could not create database", err)
 	}
