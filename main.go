@@ -54,7 +54,7 @@ func MockData() {
 
 	for i := 0; i < 50; i++ {
 		uid := rand.Intn(len(userData)) + int(userData[0].ID)
-		proposal := models.Proposal{UserID: uint(uid), Name: gofakeit.ProgrammingLanguage(), Limit: gofakeit.Number(0, 100), Description: gofakeit.Paragraph(1, 3, 200, "")}
+		proposal := models.Proposal{UserID: uint(uid), Name: gofakeit.ProgrammingLanguage(), Limit: gofakeit.Number(0, 100), Description: gofakeit.Paragraph(1, 1, 140, "")}
 		proposalData = append(proposalData, proposal)
 	}
 	database.GlobalDB.Create(&proposalData)

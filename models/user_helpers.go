@@ -50,3 +50,10 @@ func (user *User) GetUserProposals() ([]Proposal, error) {
 	}
 	return proposals, nil
 }
+func (user *ProposalUser) IDString() string {
+	return fmt.Sprint(user.ID)
+}
+
+func (u ProposalUser) TableName() string {
+	return "users"
+}

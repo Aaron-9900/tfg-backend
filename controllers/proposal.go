@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"tfg/database"
@@ -67,7 +68,26 @@ func GetProposal() gin.HandlerFunc {
 func GetProposals() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		proposals := []models.Proposal{}
-		result := database.GlobalDB.Find(&proposals)
+
+		fromStr := c.Query("from")
+		toStr := c.Query("to")
+
+		if fromStr == "" || toStr == "" {
+			fromStr = "-1"
+			toStr = "-1"
+		}
+
+		from, err := strconv.ParseInt(fromStr, 10, 64)
+		to, err := strconv.ParseInt(toStr, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"msg": "Please, provide valid 'from' and 'to' fields",
+			})
+			c.Abort()
+			return
+		}
+		result := database.GlobalDB.Offset(int(from)).Limit(int(to)).Preload("User").Find(&proposals)
+		fmt.Println(proposals[0].User)
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"msg": "Server error",
@@ -77,6 +97,7 @@ func GetProposals() gin.HandlerFunc {
 		}
 		c.JSON(200, proposals)
 		return
+
 	}
 }
 

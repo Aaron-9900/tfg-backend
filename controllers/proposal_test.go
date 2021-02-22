@@ -184,6 +184,11 @@ func TestGetProposals(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	assert.Equal(t, len(requestResponse), 1)
-	assert.Equal(t, requestResponse[0].ID, testProposal.ID)
+	proposalFromResponse := models.Proposal{}
+	for i := 0; i < len(requestResponse); i++ {
+		if requestResponse[i].ID == testProposal.ID {
+			proposalFromResponse = requestResponse[i]
+		}
+	}
+	assert.Equal(t, proposalFromResponse.ID, testProposal.ID)
 }
