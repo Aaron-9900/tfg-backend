@@ -63,6 +63,23 @@ func GetProposal() gin.HandlerFunc {
 
 }
 
+// GetProposals returns list of proposals
+func GetProposals() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		proposals := []models.Proposal{}
+		result := database.GlobalDB.Find(&proposals)
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg": "Server error",
+			})
+			c.Abort()
+			return
+		}
+		c.JSON(200, proposals)
+		return
+	}
+}
+
 // Proposal sets proposal in DB
 func PostProposal() gin.HandlerFunc {
 	return func(c *gin.Context) {

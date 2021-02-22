@@ -20,7 +20,7 @@ func TestPostProposal(t *testing.T) {
 		Limit:       10,
 		UserID:      testLoginUser.ID,
 	}
-
+	response := models.Proposal{}
 	request, err := http.NewRequest("POST", "/api/protected/proposal", nil)
 	assert.NoError(t, err)
 	q := request.URL.Query()
@@ -37,7 +37,12 @@ func TestPostProposal(t *testing.T) {
 
 	PostProposal()(c)
 
-	database.GlobalDB.Where("id = ?", testProposal.ID).Delete(&testProposal)
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+
+	assert.Equal(t, response.Name, testProposal.Name)
+
+	database.GlobalDB.Where("id = ?", response.ID).Delete(&response)
 	assert.Equal(t, 200, w.Code)
 }
 
@@ -161,4 +166,24 @@ func TestGetWrongProposalRequest(t *testing.T) {
 
 	assert.Equal(t, 400, w.Code)
 
+}
+
+func TestGetProposals(t *testing.T) {
+	requestResponse := []models.Proposal{}
+
+	request, err := http.NewRequest("GET", "/api/public/proposals", nil)
+	assert.NoError(t, err)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = request
+
+	GetProposals()(c)
+	fmt.Println(w.Body)
+	err = json.Unmarshal(w.Body.Bytes(), &requestResponse)
+	if err != nil {
+		panic(err)
+	}
+	assert.Equal(t, len(requestResponse), 1)
+	assert.Equal(t, requestResponse[0].ID, testProposal.ID)
 }

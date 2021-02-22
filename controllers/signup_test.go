@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	database.GlobalDB.Where("id = ?", testProposal.ID).Unscoped().Delete(&models.Proposal{})
 	database.GlobalDB.Where("id = ?", testLoginUser.ID).Unscoped().Delete(&models.User{})
-	database.GlobalDB.Where("id = ?", testPostUser.Email).Unscoped().Delete(&models.User{})
+	database.GlobalDB.Where("id = ?", testPostUser.ID).Unscoped().Delete(&models.User{})
 	os.Exit(code)
 }
 
@@ -67,7 +67,7 @@ func TestSignUp(t *testing.T) {
 
 	err = json.Unmarshal(w.Body.Bytes(), &actualResult)
 	assert.NoError(t, err)
-
+	testPostUser.ID = actualResult.ID
 	assert.Equal(t, testPostUser.Name, actualResult.Name)
 	assert.Equal(t, testPostUser.Email, actualResult.Email)
 }

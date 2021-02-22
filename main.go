@@ -21,6 +21,7 @@ func setupRouter() *gin.Engine {
 		{
 			public.POST("/login", controllers.Login())
 			public.POST("/signup", controllers.Signup())
+			public.GET("/proposals", controllers.GetProposals())
 		}
 
 		// here
