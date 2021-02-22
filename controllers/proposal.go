@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"tfg/database"
@@ -87,7 +86,6 @@ func GetProposals() gin.HandlerFunc {
 			return
 		}
 		result := database.GlobalDB.Offset(int(from)).Limit(int(to)).Preload("User").Find(&proposals)
-		fmt.Println(proposals[0].User)
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"msg": "Server error",
