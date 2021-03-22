@@ -71,6 +71,6 @@ func TestIncorrectToken(t *testing.T) {
 	c.Request = request
 
 	Refresh()(c)
-	assert.Equal(t, 401, w.Code)
+	assert.Equal(t, 403, w.Code)
 
 }

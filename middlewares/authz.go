@@ -3,11 +3,11 @@
 package middlewares
 
 import (
-	"fmt"
 	"strings"
 	"tfg/auth"
 	"tfg/credentials"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,12 +37,17 @@ func Authz() gin.HandlerFunc {
 		}
 
 		claims, err := jwtWrapper.ValidateToken(clientToken)
-		if err != nil {
+		if err != nil && err.(*jwt.ValidationError).Errors == jwt.ValidationErrorExpired {
 			c.JSON(401, err.Error())
 			c.Abort()
 			return
 		}
-		fmt.Println(claims)
+
+		if err != nil {
+			c.JSON(400, err.Error())
+			c.Abort()
+			return
+		}
 		c.Set("id", claims.ID)
 		c.Set("token", clientToken)
 		c.Next()

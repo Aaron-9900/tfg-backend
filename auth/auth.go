@@ -29,7 +29,7 @@ func GenerateTokens(id string) (string, string, error) {
 	jwtWrapperAccess := JwtWrapper{
 		SecretKey: credentials.JwtKey,
 		Issuer:    "AuthService",
-		ExpirationMs: time.Now().Local().Add(time.Hour*time.Duration(10) +
+		ExpirationMs: time.Now().Local().Add(time.Hour*time.Duration(0) +
 			time.Minute*time.Duration(10) +
 			time.Second*time.Duration(0)).Unix(),
 	}
@@ -81,7 +81,6 @@ func (j *JwtWrapper) ValidateToken(signedToken string) (claims *JwtClaim, err er
 			return []byte(j.SecretKey), nil
 		},
 	)
-
 	if err != nil {
 		return
 	}

@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 	"tfg/auth"
 	"tfg/database"
@@ -43,8 +44,8 @@ func Refresh() gin.HandlerFunc {
 		}
 		val, err := database.RDB.DeleteToken(uint(parsedID), token.(string))
 		if err != nil || val == int64(0) {
-			c.JSON(401, gin.H{
-				"msg": "Incorrect token",
+			c.JSON(http.StatusForbidden, gin.H{
+				"msg": "Invalid token",
 			})
 			c.Abort()
 			return

@@ -58,7 +58,7 @@ func TestAuthzInvalidToken(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, 401, w.Code)
+	assert.Equal(t, 400, w.Code)
 }
 
 func TestValidToken(t *testing.T) {
