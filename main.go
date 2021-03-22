@@ -40,21 +40,29 @@ func setupRouter() *gin.Engine {
 
 	return r
 }
-func MockData() {
+func mockData() {
 	gofakeit.Seed(0)
 
 	userData := []models.User{}
 	proposalData := []models.Proposal{}
 	for i := 0; i < 30; i++ {
-		user := models.User{Name: gofakeit.Name(), Email: gofakeit.Email(), Password: "123456"}
-		user.HashPassword(user.Password)
+		user := models.User{
+			Name:     gofakeit.Name(),
+			Email:    gofakeit.Email(),
+			Password: "123456"}
+		// TODO: user.HashPassword(user.Password) -> Hash when everything is working
 		userData = append(userData, user)
 	}
 	database.GlobalDB.Create(&userData)
 
 	for i := 0; i < 50; i++ {
 		uid := rand.Intn(len(userData)) + int(userData[0].ID)
-		proposal := models.Proposal{UserID: uint(uid), Name: gofakeit.ProgrammingLanguage(), Limit: gofakeit.Number(0, 100), Description: gofakeit.Paragraph(1, 1, 140, "")}
+		proposal := models.Proposal{
+			UserID:      uint(uid),
+			Name:        gofakeit.ProgrammingLanguage(),
+			Limit:       gofakeit.Number(0, 100),
+			Description: gofakeit.Paragraph(1, 1, 140, ""),
+			Rate:        gofakeit.Float32Range(0.1, 10)}
 		proposalData = append(proposalData, proposal)
 	}
 	database.GlobalDB.Create(&proposalData)
@@ -65,7 +73,7 @@ func main() {
 	DB, _ := database.GlobalDB.DB()
 	defer DB.Close()
 	if len(os.Args) > 1 && os.Args[1] == "withMocks" {
-		MockData()
+		mockData()
 		return
 	}
 	if err != nil {

@@ -29,7 +29,7 @@ func GenerateTokens(id string) (string, string, error) {
 	jwtWrapperAccess := JwtWrapper{
 		SecretKey: credentials.JwtKey,
 		Issuer:    "AuthService",
-		ExpirationMs: time.Now().Local().Add(time.Hour*time.Duration(0) +
+		ExpirationMs: time.Now().Local().Add(time.Hour*time.Duration(10) +
 			time.Minute*time.Duration(10) +
 			time.Second*time.Duration(0)).Unix(),
 	}

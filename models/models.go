@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// GenericDbData is a copy of gorm.Model so we can name json fields
 type GenericDbData struct {
 	ID        uint           `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
@@ -15,6 +16,7 @@ type GenericDbData struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// ProposalUser defines the user json returned in a proposal
 type ProposalUser struct {
 	GenericDbData
 	Name     string `json:"name"`
@@ -38,4 +40,5 @@ type Proposal struct {
 	Limit       int          `json:"limit"`
 	Name        string       `json:"name"`
 	Description string       `json:"description"`
+	Rate        float32      `json:"rate"`
 }

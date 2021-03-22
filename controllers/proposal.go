@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"tfg/database"
@@ -13,6 +14,7 @@ import (
 func GetProposal() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		response := models.Proposal{}
+		responseUser := models.ProposalUser{}
 		_, exists := c.Get("id") // Check if auth. We may want to remove it
 		if !exists {
 			c.JSON(http.StatusForbidden, gin.H{
@@ -48,14 +50,16 @@ func GetProposal() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		if r.Error != nil {
+		t := database.GlobalDB.Model(response).Association("User").Find(&responseUser)
+		if t != nil {
+			fmt.Println(t)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"msg": "Server error",
 			})
 			c.Abort()
 			return
 		}
-
+		response.User = responseUser
 		c.JSON(200, response)
 
 		return
@@ -99,10 +103,11 @@ func GetProposals() gin.HandlerFunc {
 	}
 }
 
-// Proposal sets proposal in DB
+// PostProposal sets proposal in DB
 func PostProposal() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, exists := c.Get("id") // from the authorization middleware
+		proposal := models.Proposal{}
 		if !exists {
 			c.JSON(http.StatusForbidden, gin.H{
 				"msg": "Forbidden",
@@ -111,31 +116,17 @@ func PostProposal() gin.HandlerFunc {
 			return
 		}
 
-		name := c.Query("name")
-		description := c.Query("description")
-		limit := c.Query("limit")
-
-		if name == "" || description == "" || limit == "" {
+		err := c.ShouldBindJSON(&proposal)
+		if err != nil || proposal.Name == "" || proposal.Description == "" || proposal.Limit == 0 || proposal.Rate == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"msg": "Missing parameters. name, description and limit are required",
+				"msg": "Name, description, rate and limit are required",
 			})
 			c.Abort()
+			fmt.Println(err)
 			return
 		}
-
 		intID, err := strconv.ParseUint(userID.(string), 10, 32)
-		limitInt, err := strconv.ParseInt(limit, 10, 64)
-
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"msg": "Server error",
-			})
-			c.Abort()
-			return
-		}
-
-		proposal := models.Proposal{UserID: uint(intID), Name: name, Description: description, Limit: int(limitInt)}
-
+		proposal.UserID = uint(intID)
 		err = proposal.CreateProposalRecord()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{

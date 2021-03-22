@@ -15,7 +15,7 @@ func (p *Proposal) CreateProposalRecord() error {
 	return nil
 }
 
-// CreateProposalRecord creates a proposal record in the database
+// IDString returns a proposal's ID as string
 func (p *Proposal) IDString() string {
 	return fmt.Sprint(p.ID)
 }

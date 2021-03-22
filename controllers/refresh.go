@@ -14,6 +14,7 @@ type refreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+// Refresh tokens
 func Refresh() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, exists := c.Get("id")

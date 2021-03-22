@@ -28,6 +28,8 @@ func (user *User) HashPassword(password string) error {
 
 	return nil
 }
+
+// IDString returns a user's ID as a string
 func (user *User) IDString() string {
 	return fmt.Sprint(user.ID)
 }
@@ -42,6 +44,7 @@ func (user *User) CheckPassword(providedPassword string) error {
 	return nil
 }
 
+// GetUserProposals returns the proposals belonging to a user
 func (user *User) GetUserProposals() ([]Proposal, error) {
 	proposals := []Proposal{}
 	result := database.GlobalDB.Where("user_id = ?", user.ID).Find(&proposals)
@@ -50,10 +53,13 @@ func (user *User) GetUserProposals() ([]Proposal, error) {
 	}
 	return proposals, nil
 }
+
+// IDString returns a proposal user's ID as string
 func (user *ProposalUser) IDString() string {
 	return fmt.Sprint(user.ID)
 }
 
-func (u ProposalUser) TableName() string {
+// TableName changes the name of the table so gorm knows what to look for
+func (user ProposalUser) TableName() string {
 	return "users"
 }

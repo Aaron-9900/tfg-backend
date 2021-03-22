@@ -14,8 +14,9 @@ import (
 
 // TokenResponse token response
 type TokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken  string       `json:"access_token"`
+	RefreshToken string       `json:"refresh_token"`
+	User         UserResponse `json:"user"`
 }
 
 // Login logs users in
@@ -73,6 +74,7 @@ func Login() gin.HandlerFunc {
 		tokenResponse := TokenResponse{
 			AccessToken:  signedToken,
 			RefreshToken: refreshToken,
+			User:         UserResponse{Name: user.Name, Email: user.Email, ID: user.ID},
 		}
 
 		c.JSON(200, tokenResponse)

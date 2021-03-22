@@ -3,7 +3,6 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -43,7 +42,6 @@ func TestLogin(t *testing.T) {
 	val, err := database.RDB.GetUserAndToken(dbUser.ID, tokens.RefreshToken)
 	assert.NoError(t, err)
 	assert.NotNil(t, val)
-	fmt.Println("key", val)
 	assert.Equal(t, 200, w.Code)
 
 }

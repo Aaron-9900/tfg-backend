@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,16 +18,14 @@ func TestPostProposal(t *testing.T) {
 		Name:        "Test Proposal",
 		Description: "Test proposal description",
 		Limit:       10,
+		Rate:        1,
 		UserID:      testLoginUser.ID,
 	}
+
 	response := models.Proposal{}
-	request, err := http.NewRequest("POST", "/api/protected/proposal", nil)
+	payload, err := json.Marshal(&testProposal)
+	request, err := http.NewRequest("POST", "/api/protected/proposal", bytes.NewBuffer(payload))
 	assert.NoError(t, err)
-	q := request.URL.Query()
-	q.Add("name", testProposal.Name)
-	q.Add("description", testProposal.Description)
-	q.Add("limit", fmt.Sprint(testProposal.Limit))
-	request.URL.RawQuery = q.Encode()
 
 	w := httptest.NewRecorder()
 
@@ -39,7 +37,6 @@ func TestPostProposal(t *testing.T) {
 
 	err = json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-
 	assert.Equal(t, response.Name, testProposal.Name)
 
 	database.GlobalDB.Where("id = ?", response.ID).Delete(&response)
@@ -48,13 +45,14 @@ func TestPostProposal(t *testing.T) {
 
 func TestPostWrongProposal(t *testing.T) {
 	var testProposal = models.Proposal{
-		Name:        "Test Proposal",
 		Description: "Test proposal description",
 		Limit:       10,
+		Rate:        1,
 		UserID:      testLoginUser.ID,
 	}
 
-	request, err := http.NewRequest("POST", "/api/protected/proposal", nil)
+	payload, err := json.Marshal(&testProposal)
+	request, err := http.NewRequest("POST", "/api/protected/proposal", bytes.NewBuffer(payload))
 	assert.NoError(t, err)
 
 	w := httptest.NewRecorder()
@@ -74,16 +72,13 @@ func TestPostUnAuthProposal(t *testing.T) {
 		Name:        "Test Proposal",
 		Description: "Test proposal description",
 		Limit:       10,
+		Rate:        1,
 		UserID:      testLoginUser.ID,
 	}
 
-	request, err := http.NewRequest("POST", "/api/protected/proposal", nil)
+	payload, err := json.Marshal(&testProposal)
+	request, err := http.NewRequest("POST", "/api/protected/proposal", bytes.NewBuffer(payload))
 	assert.NoError(t, err)
-	q := request.URL.Query()
-	q.Add("name", testProposal.Name)
-	q.Add("description", testProposal.Description)
-	q.Add("limit", fmt.Sprint(testProposal.Limit))
-	request.URL.RawQuery = q.Encode()
 
 	w := httptest.NewRecorder()
 
@@ -98,6 +93,14 @@ func TestPostUnAuthProposal(t *testing.T) {
 }
 
 func TestGetProposal(t *testing.T) {
+	var testProposal = models.Proposal{
+		Name:        "Test Proposal",
+		Description: "Test proposal description",
+		Limit:       10,
+		Rate:        1,
+		UserID:      testLoginUser.ID,
+	}
+	testProposal.CreateProposalRecord()
 	requestResponse := models.Proposal{}
 	request, err := http.NewRequest("GET", "/api/protected/proposal", nil)
 	assert.NoError(t, err)
@@ -120,7 +123,8 @@ func TestGetProposal(t *testing.T) {
 
 	assert.Equal(t, requestResponse.ID, testProposal.ID)
 	assert.Equal(t, requestResponse.Name, testProposal.Name)
-	assert.Equal(t, requestResponse.UserID, testProposal.UserID)
+	assert.Equal(t, requestResponse.User.ID, testProposal.UserID)
+	database.GlobalDB.Where("id = ?", testProposal.ID).Unscoped().Delete(&testProposal)
 
 }
 func TestGetWrongProposal(t *testing.T) {
@@ -179,7 +183,6 @@ func TestGetProposals(t *testing.T) {
 	c.Request = request
 
 	GetProposals()(c)
-	fmt.Println(w.Body)
 	err = json.Unmarshal(w.Body.Bytes(), &requestResponse)
 	if err != nil {
 		panic(err)

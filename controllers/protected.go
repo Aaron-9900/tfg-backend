@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// ProfileResponse json
 type ProfileResponse struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`

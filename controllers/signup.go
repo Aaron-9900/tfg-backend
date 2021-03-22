@@ -17,6 +17,12 @@ type LoginPayload struct {
 	Password string `json:"password"`
 }
 
+type UserResponse struct {
+	ID    uint   `json:"id"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
+}
+
 // Signup creates a user in db
 func Signup() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -59,6 +65,6 @@ func Signup() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(200, user)
+		c.JSON(200, UserResponse{Name: user.Name, Email: user.Email, ID: user.ID})
 	}
 }
