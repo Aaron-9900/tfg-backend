@@ -33,6 +33,7 @@ func setupRouter() *gin.Engine {
 			protected.GET("/profile", controllers.Profile())
 			protected.GET("/refresh", controllers.Refresh())
 			protected.GET("/proposal", controllers.GetProposal())
+			protected.POST("/logout", controllers.Logout())
 			protected.POST("/proposal", controllers.PostProposal())
 
 		}
