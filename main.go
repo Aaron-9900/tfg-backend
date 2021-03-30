@@ -25,6 +25,8 @@ func setupRouter() *gin.Engine {
 			public.POST("/login", controllers.Login())
 			public.POST("/signup", controllers.Signup())
 			public.GET("/proposals", controllers.GetProposals())
+			public.GET("/proposal-types", controllers.GetProposalTypes())
+
 		}
 
 		// here
@@ -85,8 +87,6 @@ func main() {
 	if err != nil {
 		log.Fatalln("could not create database", err)
 	}
-
-	database.GlobalDB.AutoMigrate(&models.User{})
 
 	r := setupRouter()
 	r.Run(":3000")

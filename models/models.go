@@ -41,4 +41,10 @@ type Proposal struct {
 	Name        string       `json:"name"`
 	Description string       `json:"description"`
 	Rate        float32      `json:"rate"`
+	Type        string       `json:"type"`
+}
+
+type ProposalType struct {
+	GenericDbData
+	Value string `json:"value"`
 }

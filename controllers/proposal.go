@@ -126,9 +126,11 @@ func PostProposal() gin.HandlerFunc {
 			return
 		}
 		intID, err := strconv.ParseUint(userID.(string), 10, 32)
-		proposal.UserID = uint(intID)
+		user := &models.User{}
+		user.ID = uint(intID)
+		r := database.GlobalDB.Where(&user).Find(&proposal.User)
 		err = proposal.CreateProposalRecord()
-		if err != nil {
+		if err != nil || r.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"msg": "Server error",
 			})
@@ -141,4 +143,19 @@ func PostProposal() gin.HandlerFunc {
 		return
 	}
 
+}
+func GetProposalTypes() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		proposalTypes := []models.ProposalType{}
+		result := database.GlobalDB.Find(&proposalTypes)
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg": "Server error",
+			})
+			c.Abort()
+			return
+		}
+		c.JSON(http.StatusOK, proposalTypes)
+
+	}
 }
