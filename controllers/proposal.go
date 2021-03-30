@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"tfg/aws"
 	"tfg/database"
 	"tfg/models"
 
 	"github.com/gin-gonic/gin"
 )
+
+type getSignedUrlResponse struct {
+	Url string `json:"url"`
+}
 
 // GetProposal gets proposal from DB
 func GetProposal() gin.HandlerFunc {
@@ -156,6 +161,28 @@ func GetProposalTypes() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, proposalTypes)
+
+	}
+}
+func GetProposalSignedUpload(session *aws.S3Session) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		file := c.Query("file_name")
+		if file == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"msg": "file_name param required",
+			})
+			c.Abort()
+			return
+		}
+		url, err := session.GetSignedUrl(file)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg": "Server error",
+			})
+			c.Abort()
+			return
+		}
+		c.JSON(http.StatusOK, &getSignedUrlResponse{Url: url})
 
 	}
 }

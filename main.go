@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"tfg/aws"
 	"tfg/controllers"
 	"tfg/database"
 	"tfg/middlewares"
@@ -18,6 +19,7 @@ import (
 func setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(middlewares.CORSMiddleware())
+	awsSession := aws.Init()
 	api := r.Group("/api")
 	{
 		public := api.Group("/public")
@@ -26,6 +28,7 @@ func setupRouter() *gin.Engine {
 			public.POST("/signup", controllers.Signup())
 			public.GET("/proposals", controllers.GetProposals())
 			public.GET("/proposal-types", controllers.GetProposalTypes())
+			public.GET("/signed-url", controllers.GetProposalSignedUpload(awsSession))
 
 		}
 

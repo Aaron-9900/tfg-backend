@@ -3,6 +3,10 @@ module tfg
 go 1.15
 
 require (
+	github.com/aws/aws-sdk-go v1.38.8 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.3.0 // indirect
+	github.com/aws/aws-sdk-go-v2/config v1.1.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.2.0 // indirect
 	github.com/brianvoe/gofakeit/v6 v6.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.6.3
@@ -16,7 +20,8 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/ugorji/go v1.2.4 // indirect
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/net v0.0.0-20210330075724-22f4162a9025 // indirect
+	golang.org/x/text v0.3.5 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/mysql v1.0.4
