@@ -28,8 +28,6 @@ func setupRouter() *gin.Engine {
 			public.POST("/signup", controllers.Signup())
 			public.GET("/proposals", controllers.GetProposals())
 			public.GET("/proposal-types", controllers.GetProposalTypes())
-			public.GET("/signed-url", controllers.GetProposalSignedUpload(awsSession))
-
 		}
 
 		// here
@@ -40,6 +38,7 @@ func setupRouter() *gin.Engine {
 			protected.GET("/proposal", controllers.GetProposal())
 			protected.POST("/logout", controllers.Logout())
 			protected.POST("/proposal", controllers.PostProposal())
+			protected.GET("/signed-url", controllers.GetProposalSignedUpload(awsSession))
 
 		}
 	}

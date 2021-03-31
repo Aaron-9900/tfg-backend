@@ -164,7 +164,7 @@ func GetProposalTypes() gin.HandlerFunc {
 
 	}
 }
-func GetProposalSignedUpload(session *aws.S3Session) gin.HandlerFunc {
+func GetProposalSignedUpload(session aws.StorageSession) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		file := c.Query("file_name")
 		if file == "" {
@@ -174,9 +174,17 @@ func GetProposalSignedUpload(session *aws.S3Session) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		url, err := session.GetSignedUrl(file)
+		fileName, err := session.GenerateFileName(file, "pdf")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg": "Server error",
+			})
+			c.Abort()
+			return
+		}
+		url, err := session.GetPutSignedUrl(fileName)
+		if err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{
 				"msg": "Server error",
 			})
 			c.Abort()
