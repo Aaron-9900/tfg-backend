@@ -48,3 +48,11 @@ type ProposalType struct {
 	GenericDbData
 	Value string `json:"value"`
 }
+type Submission struct {
+	GenericDbData
+	UserID     uint     `json:"user_id"`
+	User       User     `json:"-"`
+	ProposalID uint     `json:"proposal_id"`
+	Proposal   Proposal `json:"-"`
+	FileName   string   `json:"file_name"`
+}

@@ -14,6 +14,11 @@ import (
 type getSignedUrlResponse struct {
 	Url string `json:"url"`
 }
+type postSubmissionRequest struct {
+	FileName   string `json:"file_name"`
+	UserID     uint   `json:"user_id"`
+	ProposalID uint   `json:"proposal_id"`
+}
 
 // GetProposal gets proposal from DB
 func GetProposal() gin.HandlerFunc {
@@ -131,6 +136,13 @@ func PostProposal() gin.HandlerFunc {
 			return
 		}
 		intID, err := strconv.ParseUint(userID.(string), 10, 32)
+		if intID != uint64(proposal.UserID) {
+			c.JSON(http.StatusForbidden, gin.H{
+				"msg": "Forbidden",
+			})
+			c.Abort()
+			return
+		}
 		user := &models.User{}
 		user.ID = uint(intID)
 		r := database.GlobalDB.Where(&user).Find(&proposal.User)
@@ -192,5 +204,47 @@ func GetProposalSignedUpload(session aws.StorageSession) gin.HandlerFunc {
 		}
 		c.JSON(http.StatusOK, &getSignedUrlResponse{Url: url})
 
+	}
+}
+
+func PostProposalSubmission() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, exists := c.Get("id") // from the authorization middleware
+		if !exists {
+			c.JSON(http.StatusForbidden, gin.H{
+				"msg": "Forbidden",
+			})
+			c.Abort()
+			return
+		}
+		id := userID.(string)
+		request := &postSubmissionRequest{}
+		err := c.ShouldBindJSON(&request)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"msg": "file_name param required",
+			})
+			c.Abort()
+			return
+		}
+
+		submission := &models.Submission{UserID: request.UserID,
+			ProposalID: request.ProposalID,
+			FileName:   request.FileName}
+		if id != submission.UserIDString() {
+			c.JSON(http.StatusForbidden, gin.H{
+				"msg": "Forbidden",
+			})
+			c.Abort()
+			return
+		}
+		if err = submission.CreateSubmissionRecord(); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg": "Server error",
+			})
+			c.Abort()
+			return
+		}
+		c.JSON(http.StatusOK, submission)
 	}
 }

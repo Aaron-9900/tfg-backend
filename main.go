@@ -39,7 +39,7 @@ func setupRouter() *gin.Engine {
 			protected.POST("/logout", controllers.Logout())
 			protected.POST("/proposal", controllers.PostProposal())
 			protected.GET("/signed-url", controllers.GetProposalSignedUpload(awsSession))
-
+			protected.POST("/submission", controllers.PostProposalSubmission())
 		}
 	}
 
