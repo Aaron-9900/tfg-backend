@@ -17,7 +17,7 @@ type GenericDbData struct {
 }
 
 // ProposalUser defines the user json returned in a proposal
-type ProposalUser struct {
+type LowInfoUser struct {
 	GenericDbData
 	Name     string `json:"name"`
 	Email    string `json:"-" gorm:"unique"`
@@ -28,15 +28,16 @@ type ProposalUser struct {
 type User struct {
 	GenericDbData
 	Name     string `json:"name"`
-	Email    string `json:"email" gorm:"unique"`
-	Password string `json:"password"`
+	Email    string `json:"email,omitempty" gorm:"unique"`
+	Password string `json:"password,omitempty"`
 }
 
 // Proposal defines proposal in db
 type Proposal struct {
 	GenericDbData
-	User        ProposalUser `json:"user"`
-	UserID      uint         `json:"user_id"`
+	User        LowInfoUser  `json:"user,omitempty"`
+	UserID      uint         `json:"-"`
+	Submissions []Submission `json:"submissions,omitempty"`
 	Limit       int          `json:"limit"`
 	Name        string       `json:"name"`
 	Description string       `json:"description"`
@@ -50,9 +51,9 @@ type ProposalType struct {
 }
 type Submission struct {
 	GenericDbData
-	UserID     uint     `json:"user_id"`
-	User       User     `json:"-"`
-	ProposalID uint     `json:"proposal_id"`
-	Proposal   Proposal `json:"-"`
-	FileName   string   `json:"file_name"`
+	UserID     uint        `json:"-"`
+	User       LowInfoUser `json:"user"`
+	ProposalID uint        `json:"-"`
+	Proposal   Proposal    `json:"proposal"`
+	FileName   string      `json:"file_name"`
 }

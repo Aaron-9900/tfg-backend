@@ -55,11 +55,11 @@ func (user *User) GetUserProposals() ([]Proposal, error) {
 }
 
 // IDString returns a proposal user's ID as string
-func (user *ProposalUser) IDString() string {
+func (user *LowInfoUser) IDString() string {
 	return fmt.Sprint(user.ID)
 }
 
 // TableName changes the name of the table so gorm knows what to look for
-func (user ProposalUser) TableName() string {
+func (user LowInfoUser) TableName() string {
 	return "users"
 }

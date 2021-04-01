@@ -10,7 +10,10 @@ func (s *Submission) CreateSubmissionRecord() error {
 	if result.Error != nil {
 		return result.Error
 	}
-
+	result = database.GlobalDB.Preload("Proposal").Preload("User").Preload("Proposal.User").Find(&s)
+	if result.Error != nil {
+		return result.Error
+	}
 	return nil
 }
 

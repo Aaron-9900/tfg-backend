@@ -30,7 +30,7 @@ var testProposal = models.Proposal{
 }
 
 func TestMain(m *testing.M) {
-	database.Init()
+	database.TestInit("test_tfg")
 	database.InitRedis()
 	DB, _ := database.GlobalDB.DB()
 	defer DB.Close()
