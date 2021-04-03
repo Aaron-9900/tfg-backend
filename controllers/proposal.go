@@ -12,7 +12,12 @@ import (
 
 type getProposalType struct {
 	models.Proposal
-	SubmissionCount int `json:"submission_count" gorm:"-"`
+	SubmissionCount   int  `json:"submission_count" gorm:"-"`
+	HasUserSubmission bool `json:"has_user_submission"`
+}
+type getProposalsResponse struct {
+	Proposals []models.Proposal `json:"proposals"`
+	Count     int64             `json:"count"`
 }
 
 // GetProposal gets proposal from DB
@@ -53,14 +58,17 @@ func GetProposal() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
-		if userID != tempResponse.User.IDString() {
-			tempResponse.Submissions = make([]models.Submission, 0)
-		}
 		response := getProposalType{Proposal: tempResponse}
+		for i := range tempResponse.Submissions {
+			if tempResponse.Submissions[i].User.IDString() == userID {
+				response.HasUserSubmission = true
+			}
+		}
+		if userID != tempResponse.User.IDString() {
+			response.Submissions = make([]models.Submission, 0)
+		}
 		response.SubmissionCount = len(response.Submissions)
 		c.JSON(200, response)
-
 		return
 	}
 
@@ -96,7 +104,10 @@ func GetProposals() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		c.JSON(200, proposals)
+		var count int64 = 0
+		database.GlobalDB.Model(&models.Proposal{}).Count(&count)
+		response := &getProposalsResponse{Proposals: proposals, Count: count}
+		c.JSON(200, response)
 		return
 
 	}

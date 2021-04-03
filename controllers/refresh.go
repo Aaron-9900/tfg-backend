@@ -14,6 +14,10 @@ import (
 type refreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
+type refreshResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
 
 // Refresh tokens
 func Refresh() gin.HandlerFunc {
@@ -67,12 +71,10 @@ func Refresh() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
-		tokenResponse := TokenResponse{
+		tokenResponse := refreshResponse{
 			AccessToken:  signedToken,
 			RefreshToken: refreshToken,
 		}
-
 		c.JSON(200, tokenResponse)
 	}
 }

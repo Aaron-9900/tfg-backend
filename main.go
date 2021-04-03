@@ -40,6 +40,7 @@ func setupRouter() *gin.Engine {
 			protected.POST("/proposal", controllers.PostProposal())
 			protected.GET("/signed-url", controllers.GetProposalSignedUpload(awsSession))
 			protected.POST("/submission", controllers.PostProposalSubmission())
+			protected.GET("/submission-file", controllers.GetProposalSignedDownload(awsSession))
 		}
 	}
 
@@ -65,9 +66,10 @@ func mockData() {
 		proposal := models.Proposal{
 			UserID:      uint(uid),
 			Name:        gofakeit.ProgrammingLanguage(),
-			Limit:       gofakeit.Number(0, 100),
-			Description: gofakeit.Paragraph(1, 1, 140, ""),
-			Rate:        gofakeit.Float32Range(0.1, 10)}
+			Limit:       gofakeit.Number(0, 1000),
+			Description: gofakeit.Paragraph(1, 1, 300, ""),
+			Rate:        gofakeit.Float32Range(0.1, 10),
+			Type:        "Facebook"}
 		proposalData = append(proposalData, proposal)
 	}
 	database.GlobalDB.Create(&proposalData)

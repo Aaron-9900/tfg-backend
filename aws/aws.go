@@ -13,7 +13,8 @@ import (
 
 type StorageSession interface {
 	GetPutSignedUrl(filename string) (string, error)
-	GenerateFileName(filename string, filetype string) (string, error)
+	GetGetSignedUrl(filename string) (string, error)
+	GenerateFileName(filename string) (string, error)
 }
 
 type S3Session struct {
@@ -27,7 +28,14 @@ func (s *S3Session) GetPutSignedUrl(filename string) (string, error) {
 	})
 	return req.Presign(5 * time.Minute)
 }
-func (s *S3Session) GenerateFileName(filename string, filetype string) (string, error) {
+func (s *S3Session) GetGetSignedUrl(filename string) (string, error) {
+	req, _ := s.Session.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String("tug-test"),
+		Key:    aws.String(filename),
+	})
+	return req.Presign(5 * time.Minute)
+}
+func (s *S3Session) GenerateFileName(filename string) (string, error) {
 	extPosition := strings.LastIndex(filename, ".")
 	fileExt := ""
 	if extPosition > -1 {
