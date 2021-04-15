@@ -41,6 +41,8 @@ func setupRouter() *gin.Engine {
 			protected.GET("/signed-url", controllers.GetProposalSignedUpload(awsSession))
 			protected.POST("/submission", controllers.PostProposalSubmission())
 			protected.GET("/submission-file", controllers.GetProposalSignedDownload(awsSession))
+			protected.GET("/submissions", controllers.GetUserSubmissions())
+			protected.POST("/submission-status", controllers.PostSubmissionStatus())
 		}
 	}
 

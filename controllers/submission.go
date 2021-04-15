@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"tfg/aws"
@@ -38,6 +39,11 @@ type setSubmissionStatusRequest struct {
 	Status       models.SubmissionStatus `json:"status"`
 	ProposalID   uint                    `json:"proposal_id"`
 }
+type getUserSubmissionsRequest struct {
+	ProposalID uint `json:"proposal_id"`
+}
+
+// TODO: Add test
 
 func GetProposalSignedUpload(session aws.StorageSession) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -69,6 +75,8 @@ func GetProposalSignedUpload(session aws.StorageSession) gin.HandlerFunc {
 
 	}
 }
+
+// TODO: Add test
 
 func GetProposalSignedDownload(session aws.StorageSession) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -135,6 +143,8 @@ func GetProposalSignedDownload(session aws.StorageSession) gin.HandlerFunc {
 	}
 }
 
+// TODO: Add test
+
 func PostProposalSubmission() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, exists := c.Get("id") // from the authorization middleware
@@ -181,7 +191,65 @@ func PostProposalSubmission() gin.HandlerFunc {
 	}
 }
 
-/*
+// TODO: Add test
+func GetUserSubmissions() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, exists := c.Get("id") // from the authorization middleware
+		if !exists {
+			c.JSON(http.StatusForbidden, gin.H{
+				"msg": "Forbidden",
+			})
+			c.Abort()
+			return
+		}
+		request := c.Query("proposal_id")
+		if request == "" {
+			request = "0"
+		}
+		requestInt, err := strconv.ParseUint(request, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg": "Server error",
+			})
+			c.Abort()
+			return
+		}
+		userID, err = strconv.ParseUint(userID.(string), 10, 64)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg": "Server error",
+			})
+			c.Abort()
+			return
+		}
+		submissions := []models.Submission{}
+		if requestInt != 0 {
+			if tx := database.GlobalDB.Where("user_id = ? AND proposal_id = ?", uint(userID.(uint64)), requestInt).
+				Preload("User").Preload("Proposal").Preload("Proposal.User").Order("created_at").Find(&submissions); tx.Error != nil {
+				fmt.Println(tx)
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg": "Server error",
+				})
+				c.Abort()
+				return
+			}
+		} else {
+			if tx := database.GlobalDB.Where("user_id = ?", uint(userID.(uint64))).Preload("User").Preload("Proposal").
+				Preload("Proposal.User").Find(&submissions); tx.Error != nil {
+				fmt.Println(tx)
+
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg": "Server error",
+				})
+				c.Abort()
+				return
+			}
+		}
+		c.JSON(http.StatusOK, submissions)
+
+	}
+}
+
 func PostSubmissionStatus() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, exists := c.Get("id") // from the authorization middleware
@@ -203,24 +271,23 @@ func PostSubmissionStatus() gin.HandlerFunc {
 		}
 		submission := &models.Submission{}
 		submission.ID = request.SubmissionID
-		database.GlobalDB.Preload("Proposal").Find(&submission)
-		if userID != submission.Proposal.IDString() {
+		database.GlobalDB.Preload("Proposal").Preload("Proposal.User").Find(&submission)
+		if userID != submission.Proposal.User.IDString() {
 			c.JSON(http.StatusForbidden, gin.H{
 				"msg": "Forbidden",
 			})
 			c.Abort()
 			return
 		}
-
-		if tx := database.GlobalDB.Find(&submission).Update("status", request.Status); tx != nil {
+		submission.Status = request.Status
+		if tx := database.GlobalDB.Save(&submission); tx.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"msg": "Server error",
 			})
 			c.Abort()
 			return
 		}
-
+		c.JSON(http.StatusOK, submission)
 
 	}
 }
-*/

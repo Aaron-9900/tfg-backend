@@ -58,14 +58,14 @@ func GetProposal() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		response := getProposalType{Proposal: tempResponse}
+		response := &getProposalType{Proposal: tempResponse}
 		for i := range tempResponse.Submissions {
 			if tempResponse.Submissions[i].User.IDString() == userID {
 				response.HasUserSubmission = true
 			}
 		}
 		if userID != tempResponse.User.IDString() {
-			response.Submissions = make([]models.Submission, 0)
+			database.GlobalDB.Preload("User").Where("user_id = ? AND proposal_id = ?", userID, tempResponse.IDString()).Find(&response.Submissions)
 		}
 		response.SubmissionCount = len(response.Submissions)
 		c.JSON(200, response)
