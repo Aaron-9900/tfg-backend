@@ -140,9 +140,24 @@ func PostProposal() gin.HandlerFunc {
 
 		user := &models.User{}
 		user.ID = uint(intID)
+		t := database.GlobalDB.Find(&user)
+		if t.Error != nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"msg": "Server error",
+			})
+			c.Abort()
+			return
+		}
+		if user.PrivacyPolicy == "" {
+			c.JSON(http.StatusPreconditionFailed, gin.H{
+				"msg": "User needs a privacy policy",
+			})
+			c.Abort()
+			return
+		}
 		proposal.UserID = uint(intID)
 		err = proposal.CreateProposalRecord()
-		t := database.GlobalDB.Where("id = ?", user.ID).Find(&proposal.User)
+		t = database.GlobalDB.Where("id = ?", user.ID).Find(&proposal.User)
 		if err != nil || t.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"msg": "Server error",

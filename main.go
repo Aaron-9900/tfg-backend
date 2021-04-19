@@ -43,6 +43,8 @@ func setupRouter() *gin.Engine {
 			protected.GET("/submission-file", controllers.GetProposalSignedDownload(awsSession))
 			protected.GET("/submissions", controllers.GetUserSubmissions())
 			protected.POST("/submission-status", controllers.PostSubmissionStatus())
+			protected.GET("/user", controllers.GetUserDetail())
+			protected.PUT("/user/settings", controllers.PutUserSettings())
 		}
 	}
 
