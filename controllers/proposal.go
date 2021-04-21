@@ -97,6 +97,9 @@ func GetProposals() gin.HandlerFunc {
 			return
 		}
 		result := database.GlobalDB.Order("created_at desc").Offset(int(from)).Limit(int(to)).Preload("User").Find(&proposals)
+		for i := range proposals {
+			proposals[i].User.PrivacyPolicy = ""
+		}
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"msg": "Server error",

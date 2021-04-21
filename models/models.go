@@ -22,7 +22,7 @@ type LowInfoUser struct {
 	Name          string `json:"name"`
 	Email         string `json:"-" gorm:"unique"`
 	Password      string `json:"-"`
-	PrivacyPolicy string `json:"privacy_policy"`
+	PrivacyPolicy string `json:"privacy_policy,omitempty"`
 }
 
 // User defines the user in db
@@ -61,4 +61,11 @@ type Submission struct {
 	FileName    string           `json:"file_name"`
 	Status      SubmissionStatus `json:"status"`
 	ContentType string           `json:"content_type"`
+}
+
+type PrivacyTemplates struct {
+	GenericDbData
+	Name        string `json:"name"`
+	Content     string `json:"content"`
+	Description string `json:"description"`
 }

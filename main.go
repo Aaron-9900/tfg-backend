@@ -28,6 +28,8 @@ func setupRouter() *gin.Engine {
 			public.POST("/signup", controllers.Signup())
 			public.GET("/proposals", controllers.GetProposals())
 			public.GET("/proposal-types", controllers.GetProposalTypes())
+			public.GET("/privacy-templates", controllers.GetPrivacyTemplates())
+
 		}
 
 		// here
