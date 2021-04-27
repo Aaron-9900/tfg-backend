@@ -9,6 +9,7 @@ import (
 	"tfg/models"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type getSignedUrlResponse struct {
@@ -41,6 +42,13 @@ type setSubmissionStatusRequest struct {
 }
 type getUserSubmissionsRequest struct {
 	ProposalID uint `json:"proposal_id"`
+}
+type putUserBalance struct {
+	Balance float64 `json:"balance"`
+}
+type userBalanceResponse struct {
+	models.User
+	Balance float64 `json:"balance"`
 }
 
 // TODO: Add test
@@ -272,12 +280,59 @@ func PostSubmissionStatus() gin.HandlerFunc {
 		submission := &models.Submission{}
 		submission.ID = request.SubmissionID
 		database.GlobalDB.Preload("Proposal").Preload("Proposal.User").Find(&submission)
-		if userID != submission.Proposal.User.IDString() {
+		if userID.(string) != submission.Proposal.User.IDString() {
 			c.JSON(http.StatusForbidden, gin.H{
 				"msg": "Forbidden",
 			})
 			c.Abort()
 			return
+		}
+		if request.Status == "accepted" {
+			userSubmitting := &models.User{}
+			userIDint, err := strconv.ParseUint(userID.(string), 10, 64)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg": "Server error",
+				})
+				c.Abort()
+				return
+			}
+			userSubmitting.ID = uint(userIDint)
+			tx := database.GlobalDB.Find(&userSubmitting)
+			if tx.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg": "Server error",
+				})
+				c.Abort()
+				return
+			}
+			if userSubmitting.Balance-float64(submission.Proposal.Rate) < 0 {
+				c.JSON(http.StatusPreconditionFailed, gin.H{
+					"msg": "Not enough balance",
+				})
+				c.Abort()
+				return
+			}
+			err = database.GlobalDB.Transaction(func(tx *gorm.DB) error {
+				targetUser := submission.User
+				targetUser.Balance = targetUser.Balance + float64(submission.Proposal.Rate)
+				if r := tx.Save(&targetUser); r.Error != nil {
+					return r.Error
+				}
+				userSubmitting.Balance = userSubmitting.Balance - float64(submission.Proposal.Rate)
+				if r := tx.Save(&userSubmitting); r.Error != nil {
+					return r.Error
+				}
+				return nil
+			})
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg": "Server error",
+				})
+				c.Abort()
+				return
+			}
+
 		}
 		submission.Status = request.Status
 		if tx := database.GlobalDB.Save(&submission); tx.Error != nil {
@@ -288,6 +343,57 @@ func PostSubmissionStatus() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, submission)
+
+	}
+}
+
+func PutUserBalance() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, exists := c.Get("id") // from the authorization middleware
+		if !exists {
+			c.JSON(http.StatusForbidden, gin.H{
+				"msg": "Forbidden",
+			})
+			c.Abort()
+			return
+		}
+		request := &putUserBalance{}
+		err := c.ShouldBindJSON(&request)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"msg": "balance is required",
+			})
+			c.Abort()
+			return
+		}
+
+		user := &models.User{}
+		id, err := strconv.ParseUint(userID.(string), 10, 32)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg": "server error",
+			})
+			c.Abort()
+			return
+		}
+		user.ID = uint(id)
+		if err = database.GlobalDB.Find(&user).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg": "server error",
+			})
+			c.Abort()
+			return
+		}
+		user.Balance = user.Balance + request.Balance
+		if err = database.GlobalDB.Save(&user).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg": "server error",
+			})
+			c.Abort()
+			return
+		}
+		response := &userBalanceResponse{User: *user, Balance: user.Balance}
+		c.JSON(http.StatusOK, response)
 
 	}
 }

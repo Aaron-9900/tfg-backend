@@ -47,6 +47,7 @@ func setupRouter() *gin.Engine {
 			protected.POST("/submission-status", controllers.PostSubmissionStatus())
 			protected.GET("/user", controllers.GetUserDetail())
 			protected.PUT("/user/settings", controllers.PutUserSettings())
+			protected.PUT("/user/balance", controllers.PutUserBalance())
 		}
 	}
 

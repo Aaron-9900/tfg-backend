@@ -12,9 +12,14 @@ import (
 type putUserSettings struct {
 	PrivacyPolicy string `json:"privacy_policy"`
 }
-type privacyPolicyResponse struct {
+type userSettingsResponse struct {
 	models.User
 	PrivacyPolicy string `json:"privacy_policy"`
+}
+type privateUserSettingsResponse struct {
+	models.User
+	PrivacyPolicy string  `json:"privacy_policy"`
+	Balance       float64 `json:"balance"`
 }
 
 func PutUserSettings() gin.HandlerFunc {
@@ -66,7 +71,7 @@ func PutUserSettings() gin.HandlerFunc {
 		}
 
 		user.Password = ""
-		response := privacyPolicyResponse{User: user, PrivacyPolicy: request.PrivacyPolicy}
+		response := userSettingsResponse{User: user, PrivacyPolicy: request.PrivacyPolicy}
 		c.JSON(http.StatusOK, response)
 
 	}
@@ -102,8 +107,13 @@ func GetUserDetail() gin.HandlerFunc {
 			return
 		}
 		user.Password = ""
-		response := privacyPolicyResponse{User: user, PrivacyPolicy: user.PrivacyPolicy}
+		if userId == user.IDString() {
+			response := privateUserSettingsResponse{User: user, PrivacyPolicy: user.PrivacyPolicy, Balance: user.Balance}
+			c.JSON(http.StatusOK, response)
+			c.Done()
+			return
+		}
+		response := userSettingsResponse{User: user, PrivacyPolicy: user.PrivacyPolicy}
 		c.JSON(http.StatusOK, response)
-
 	}
 }

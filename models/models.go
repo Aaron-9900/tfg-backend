@@ -19,19 +19,21 @@ type GenericDbData struct {
 // ProposalUser defines the user json returned in a proposal
 type LowInfoUser struct {
 	GenericDbData
-	Name          string `json:"name"`
-	Email         string `json:"-" gorm:"unique"`
-	Password      string `json:"-"`
-	PrivacyPolicy string `json:"privacy_policy,omitempty"`
+	Name          string  `json:"name"`
+	Email         string  `json:"-" gorm:"unique"`
+	Password      string  `json:"-"`
+	PrivacyPolicy string  `json:"privacy_policy,omitempty"`
+	Balance       float64 `json:"-"`
 }
 
 // User defines the user in db
 type User struct {
 	GenericDbData
-	Name          string `json:"name"`
-	Email         string `json:"email,omitempty" gorm:"unique"`
-	Password      string `json:"password,omitempty"`
-	PrivacyPolicy string `json:"-"`
+	Name          string  `json:"name"`
+	Email         string  `json:"email,omitempty" gorm:"unique"`
+	Password      string  `json:"password,omitempty"`
+	PrivacyPolicy string  `json:"-"`
+	Balance       float64 `json:"-"`
 }
 
 // Proposal defines proposal in db
