@@ -11,7 +11,7 @@ func (s *Submission) CreateSubmissionRecord() error {
 	if result.Error != nil {
 		return result.Error
 	}
-	result = database.GlobalDB.Find(&s)
+	result = database.GlobalDB.Preload("User").Find(&s)
 	if result.Error != nil {
 		return result.Error
 	}

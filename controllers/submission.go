@@ -63,13 +63,17 @@ func GetProposalSignedUpload(session aws.StorageSession) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		fileName, err := session.GenerateFileName(file)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"msg": "Server error",
-			})
-			c.Abort()
-			return
+		fileName := file
+		if salt := c.Query("add_salt"); salt != "" {
+			var err error = nil
+			fileName, err = session.GenerateFileName(file)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg": "Server error",
+				})
+				c.Abort()
+				return
+			}
 		}
 		url, err := session.GetPutSignedUrl(fileName)
 		if err != nil {
@@ -131,7 +135,7 @@ func GetProposalSignedDownload(session aws.StorageSession) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		if id != submission.UserID || id != submission.Proposal.UserID {
+		if id != submission.UserID && id != submission.Proposal.UserID {
 			c.JSON(http.StatusForbidden, gin.H{
 				"msg": "Forbidden",
 			})
@@ -148,6 +152,28 @@ func GetProposalSignedDownload(session aws.StorageSession) gin.HandlerFunc {
 		}
 		c.JSON(http.StatusOK, &getGetSignedUrlResponse{Url: url})
 
+	}
+}
+
+func GetSchemeSignedDownload(session aws.StorageSession) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		submissionID := c.Query("submission_id")
+		if submissionID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"msg": "file_name and submission_id params required",
+			})
+			c.Abort()
+			return
+		}
+		url, err := session.GetGetSignedUrl("schema/" + submissionID)
+		if err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{
+				"msg": "Server error",
+			})
+			c.Abort()
+			return
+		}
+		c.JSON(http.StatusOK, &getGetSignedUrlResponse{Url: url})
 	}
 }
 
@@ -279,7 +305,7 @@ func PostSubmissionStatus() gin.HandlerFunc {
 		}
 		submission := &models.Submission{}
 		submission.ID = request.SubmissionID
-		database.GlobalDB.Preload("Proposal").Preload("Proposal.User").Find(&submission)
+		database.GlobalDB.Preload("User").Preload("Proposal").Preload("Proposal.User").Find(&submission)
 		if userID.(string) != submission.Proposal.User.IDString() {
 			c.JSON(http.StatusForbidden, gin.H{
 				"msg": "Forbidden",

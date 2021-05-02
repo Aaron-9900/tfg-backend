@@ -48,6 +48,7 @@ func setupRouter() *gin.Engine {
 			protected.GET("/user", controllers.GetUserDetail())
 			protected.PUT("/user/settings", controllers.PutUserSettings())
 			protected.PUT("/user/balance", controllers.PutUserBalance())
+			protected.GET("/submission-schema", controllers.GetSchemeSignedDownload(awsSession))
 		}
 	}
 
